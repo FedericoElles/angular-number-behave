@@ -1,0 +1,146 @@
+"use strict";
+
+angular.module( 'angularNumberBehave', [
+])
+
+
+.service('numberBehave', function() {
+  this.formatCurrency = function(viewValue) {
+    var parts = (''+viewValue).split(',');
+    if (parts.length > 1){
+      parts[1] = (parts[1]+'00').substr(0,2);
+    } else {
+      parts.push('00');
+    }
+    return parts.join(',');
+  };
+})
+
+
+.directive('validNumber', ['$parse', 'numberBehave', function($parse, numberBehave) {
+  return {
+    require: '?ngModel',
+    link: function(scope, element, attrs, ngModelCtrl) {
+      if(!ngModelCtrl) {
+        return;
+      }
+      var parts;
+      var flagEditing = false;
+      var allowDecimal = (typeof attrs['allowDecimal'] !== 'undefined');
+      var isCurrency = (typeof attrs['currency'] !== 'undefined');
+      //console.log('allowDecimal',allowDecimal,attrs);
+
+      scope.$watch(function(){return ngModelCtrl.$viewValue;},function(newVal,oldVal){
+        //console.log('viewValue.change',oldVal,newVal);
+        if (oldVal !== newVal){
+          if ((newVal % 1 !== 0 || isCurrency) && !flagEditing){
+            var clean = (''+newVal).replace(/\./g,',');
+            if (isCurrency){
+              clean = numberBehave.formatCurrency(clean);
+            }
+            ngModelCtrl.$setViewValue(clean);
+            ngModelCtrl.$render();
+          }
+        }
+      });
+
+      ngModelCtrl.$parsers.push(function(val) {
+        //console.log('format Model',val);
+        var clean = val;
+        var floatVal = 0;
+        if (allowDecimal){
+          clean = clean.replace(/\./g,',');
+          clean = clean.replace(/,,/g,',');
+          clean = clean.replace( /[^0-9,]+/g, '');
+
+          if (clean.length > 0){
+            //first may not be ,
+            while (clean.substr(0,1) === ',') {
+              clean = clean.substr(1);
+            }
+            //last may be ,
+            // Wrong: while (clean.substr(-1,1) === ',') {
+            // Wrong: clean = clean.substr(0,clean.length - 1);
+            // Wrong:}
+          }
+        }else{
+          clean = val.replace( /[^0-9]+/g, '');
+        }
+
+        if (val !== clean) {
+          if (isCurrency){
+            clean = numberBehave.formatCurrency(clean);
+          }
+          ngModelCtrl.$setViewValue(clean);
+          ngModelCtrl.$render();
+        }
+
+        //convert value to number
+        floatVal = parseFloat(clean.replace(/,/g,'.'),10);
+        if (isNaN(floatVal)){
+          floatVal = 0;
+        }
+
+        //console.log('Number',ngModelCtrl.$viewValue,floatVal);
+        return floatVal;
+      });
+
+      element.bind('keypress', function(event) {
+        if(event.keyCode === 32) {
+          event.preventDefault();
+        }
+      });
+
+      element.bind('focus', function(event) {
+        flagEditing = true;
+      });
+
+      element.bind('blur', function(event) {
+        flagEditing = false;
+        //console.log('field left',isCurrency);
+        if (isCurrency){
+          ngModelCtrl.$setViewValue(
+            numberBehave.formatCurrency(ngModelCtrl.$viewValue)
+          );
+          ngModelCtrl.$render();
+        }
+      });
+    }
+  };
+}])
+
+.directive('increaseNumber', function($parse) {
+  return {
+    require: '?ngModel',
+    //scope: {'ngModel':'='},
+    link: function(scope, element, attrs, ngModelCtrl) {
+      if(!ngModelCtrl) {
+        return;
+      }
+      var rules,
+          x,
+          mod,
+          val;
+      element.bind('click', function(event) {
+        rules = scope.$eval(attrs.increaseNumber);
+        val = scope.$eval(attrs.ngModel);
+        //console.log('rules',rules,scope.ngModel);
+        for (x in rules){
+          if (rules[x]){
+            mod = parseFloat(x,10);
+            //value must remain larger 0
+            if (!isNaN(mod) && (val + mod > 0)){
+              //fix rounding errors when using decimals
+              val = (Math.round(val*100) + Math.round(mod*100))/100;
+              //set value
+              scope.$eval(attrs.ngModel + "=" + val);
+              scope.$apply();
+            }
+          }
+        }
+      });
+    }
+  }
+})
+
+;
