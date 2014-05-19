@@ -8,6 +8,7 @@ angular.module('demo', [
     demo:'Test',
     radius:50,
     radius2:30,
+    price:1
   };
 })
 

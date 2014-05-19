@@ -64,6 +64,32 @@
                           increase-number="{'10':ctrl.radius2<50,'50':ctrl.radius2>=50}">+</button>
                   <span class="add-on">km</span>
                 </div>
+
+
+                <p>Price</p>
+                <div>
+
+                  <button type="button" ng-model="ctrl.price"
+                          min="0"
+                          increase-number="{'-0.1':ctrl.price<=1,'-1':ctrl.price>1}">-</button>
+                  <input ng-model="ctrl.price"
+                    type="text"
+                    name="price"
+                    valid-number
+                    allow-decimal
+                    currency
+                    min="0"
+                    max="9999"
+                    maxlength="7"
+                    type="text">
+                  <button type="button" ng-model="ctrl.price"
+                          max="9999"
+                          increase-number="{'0.1':ctrl.price<1,'1':ctrl.price>=1}">+</button>
+                  <span ng-show="myForm.price.$valid"> ERROR: Invalid value</span>
+                </div>
+
+
+
             </form>
         </div>
 

@@ -52,7 +52,7 @@ angular.module( 'angularNumberBehave', [
       var flagEditing = false;
       var allowDecimal = (typeof attrs['allowDecimal'] !== 'undefined');
       var isCurrency = (typeof attrs['currency'] !== 'undefined');
-
+      var firstRun = true;
       var min = scope.$eval(attrs.min);
       var max = scope.$eval(attrs.max);
 
@@ -63,7 +63,8 @@ angular.module( 'angularNumberBehave', [
 
       scope.$watch(function(){return ngModelCtrl.$viewValue;},function(newVal,oldVal){
         //console.log('viewValue.change',oldVal,newVal);
-        if (oldVal !== newVal){
+        if (oldVal !== newVal || firstRun){
+          firstRun = false;
           if ((newVal % 1 !== 0 || isCurrency) && !flagEditing){
             var clean = (''+newVal).replace(/\./g,',');
             if (isCurrency){
@@ -91,17 +92,18 @@ angular.module( 'angularNumberBehave', [
             while (clean.substr(0,1) === ',') {
               clean = clean.substr(1);
             }
-            //last may be ,
-            // Wrong: while (clean.substr(-1,1) === ',') {
-            // Wrong: clean = clean.substr(0,clean.length - 1);
-            // Wrong:}
+            //prevent more than one comma
+            clean = clean.replace(',','X');
+            clean = clean.replace(/,/g,'');
+            clean = clean.replace('X',',');
+
           }
         }else{
           clean = val.replace( /[^0-9]+/g, '');
         }
 
         if (val !== clean) {
-          if (isCurrency){
+          if (isCurrency && clean){
             clean = numberBehave.formatCurrency(clean);
           }
           ngModelCtrl.$setViewValue(clean);
