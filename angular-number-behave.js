@@ -5,6 +5,9 @@ angular.module( 'angularNumberBehave', [
 
 
 .service('numberBehave', function() {
+
+
+  //formats a number into a currency
   this.formatCurrency = function(viewValue) {
     var parts = (''+viewValue).split(',');
     if (parts.length > 1){
@@ -13,6 +16,27 @@ angular.module( 'angularNumberBehave', [
       parts.push('00');
     }
     return parts.join(',');
+  };
+
+
+  //parse any currency into a float
+  this.parseCurrency = function(strValue){
+    return parseFloat(strValue.replace(',','.'),10);
+  };
+
+
+  //make sure a number is between two bounderies
+  this.maxBetween = function(num,min,max){
+    var r = num;
+    if (!isNaN(num)){
+      if (typeof min !== 'undefined'){
+        r = (r<min) ? min : r;
+      }
+      if (typeof max !== 'undefined'){
+        r = (r>max) ? max : r;
+      }
+    }
+    return r;
   };
 })
 
@@ -28,6 +52,13 @@ angular.module( 'angularNumberBehave', [
       var flagEditing = false;
       var allowDecimal = (typeof attrs['allowDecimal'] !== 'undefined');
       var isCurrency = (typeof attrs['currency'] !== 'undefined');
+
+      var min = scope.$eval(attrs.min);
+      var max = scope.$eval(attrs.max);
+
+      ngModelCtrl.$setValidity('numberBehave', false);
+
+
       //console.log('allowDecimal',allowDecimal,attrs);
 
       scope.$watch(function(){return ngModelCtrl.$viewValue;},function(newVal,oldVal){
@@ -38,6 +69,7 @@ angular.module( 'angularNumberBehave', [
             if (isCurrency){
               clean = numberBehave.formatCurrency(clean);
             }
+
             ngModelCtrl.$setViewValue(clean);
             ngModelCtrl.$render();
           }
@@ -48,6 +80,7 @@ angular.module( 'angularNumberBehave', [
         //console.log('format Model',val);
         var clean = val;
         var floatVal = 0;
+        var floatValOriginal;
         if (allowDecimal){
           clean = clean.replace(/\./g,',');
           clean = clean.replace(/,,/g,',');
@@ -76,14 +109,21 @@ angular.module( 'angularNumberBehave', [
         }
 
         //convert value to number
-        floatVal = parseFloat(clean.replace(/,/g,'.'),10);
+        floatVal = numberBehave.parseCurrency(clean);
+
         if (isNaN(floatVal)){
           floatVal = 0;
         }
 
+        floatValOriginal = floatVal;
+        floatVal = numberBehave.maxBetween(floatVal,min,max);
+        //console.log('numberBehave', floatValOriginal, floatVal,'minmax',min,max);
+        ngModelCtrl.$setValidity('numberBehave', floatValOriginal !== floatVal);
+
         //console.log('Number',ngModelCtrl.$viewValue,floatVal);
         return floatVal;
-      });
+      }); //end parser
+
 
       element.bind('keypress', function(event) {
         if(event.keyCode === 32) {
@@ -91,13 +131,23 @@ angular.module( 'angularNumberBehave', [
         }
       });
 
+
       element.bind('focus', function(event) {
         flagEditing = true;
       });
 
+
       element.bind('blur', function(event) {
         flagEditing = false;
-        //console.log('field left',isCurrency);
+
+        //change viewValue if different from value
+        if (ngModelCtrl.$modelValue !==
+            numberBehave.parseCurrency(ngModelCtrl.$viewValue)){
+          ngModelCtrl.$setViewValue(''+ngModelCtrl.$modelValue);
+          ngModelCtrl.$render();
+        }
+
+        //format currency
         if (isCurrency){
           ngModelCtrl.$setViewValue(
             numberBehave.formatCurrency(ngModelCtrl.$viewValue)
@@ -109,7 +159,7 @@ angular.module( 'angularNumberBehave', [
   };
 }])
 
-.directive('increaseNumber', function($parse) {
+.directive('increaseNumber', function($parse, numberBehave) {
   return {
     require: '?ngModel',
     //scope: {'ngModel':'='},
@@ -120,10 +170,15 @@ angular.module( 'angularNumberBehave', [
       var rules,
           x,
           mod,
+          min = scope.$eval(attrs.min),
+          max = scope.$eval(attrs.max),
           val;
+
       element.bind('click', function(event) {
         rules = scope.$eval(attrs.increaseNumber);
         val = scope.$eval(attrs.ngModel);
+
+
         //console.log('rules',rules,scope.ngModel);
         for (x in rules){
           if (rules[x]){
@@ -132,6 +187,7 @@ angular.module( 'angularNumberBehave', [
             if (!isNaN(mod) && (val + mod > 0)){
               //fix rounding errors when using decimals
               val = (Math.round(val*100) + Math.round(mod*100))/100;
+              val = numberBehave.maxBetween(val,min,max);
               //set value
               scope.$eval(attrs.ngModel + "=" + val);
               scope.$apply();
