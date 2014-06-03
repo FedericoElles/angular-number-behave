@@ -21,7 +21,7 @@ angular.module( 'angularNumberBehave', [
 
   //parse any currency into a float
   this.parseCurrency = function(strValue){
-    return parseFloat(strValue.replace(',','.'),10);
+    return parseFloat((''+strValue).replace(',','.'),10);
   };
 
 
