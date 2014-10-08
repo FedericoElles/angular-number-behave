@@ -54,8 +54,8 @@ angular.module( 'angularNumberBehave', [
                         attrs['allowDecimal'] !== 'false');
       var isCurrency = (typeof attrs['currency'] !== 'undefined');
       var firstRun = true;
-      var min = scope.$eval(attrs.min);
-      var max = scope.$eval(attrs.max);
+      var min;
+      var max;
 
       ngModelCtrl.$setValidity('numberBehave', false);
 
@@ -119,6 +119,8 @@ angular.module( 'angularNumberBehave', [
         }
 
         floatValOriginal = floatVal;
+        min = scope.$eval(attrs.min);
+        max = scope.$eval(attrs.max);
         floatVal = numberBehave.maxBetween(floatVal,min,max);
         //console.log('numberBehave', floatValOriginal, floatVal,'minmax',min,max);
         ngModelCtrl.$setValidity('numberBehave', floatValOriginal !== floatVal);
@@ -173,8 +175,8 @@ angular.module( 'angularNumberBehave', [
       var rules,
           x,
           mod,
-          min = scope.$eval(attrs.min),
-          max = scope.$eval(attrs.max),
+          min,
+          max,
           val;
 
       element.bind('click', function(event) {
@@ -190,6 +192,8 @@ angular.module( 'angularNumberBehave', [
             if (!isNaN(mod) && (val + mod >= 0)){
               //fix rounding errors when using decimals
               val = (Math.round(val*100) + Math.round(mod*100))/100;
+              min = scope.$eval(attrs.min);
+              max = scope.$eval(attrs.max);
               val = numberBehave.maxBetween(val,min,max);
               //set value
               scope.$eval(attrs.ngModel + "=" + val);
