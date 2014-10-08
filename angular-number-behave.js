@@ -50,7 +50,8 @@ angular.module( 'angularNumberBehave', [
       }
       var parts;
       var flagEditing = false;
-      var allowDecimal = (typeof attrs['allowDecimal'] !== 'undefined');
+      var allowDecimal = (typeof attrs['allowDecimal'] !== 'undefined' &&
+                        attrs['allowDecimal'] !== 'false');
       var isCurrency = (typeof attrs['currency'] !== 'undefined');
       var firstRun = true;
       var min = scope.$eval(attrs.min);
@@ -186,7 +187,7 @@ angular.module( 'angularNumberBehave', [
           if (rules[x]){
             mod = parseFloat(x,10);
             //value must remain larger 0
-            if (!isNaN(mod) && (val + mod > 0)){
+            if (!isNaN(mod) && (val + mod >= 0)){
               //fix rounding errors when using decimals
               val = (Math.round(val*100) + Math.round(mod*100))/100;
               val = numberBehave.maxBetween(val,min,max);
