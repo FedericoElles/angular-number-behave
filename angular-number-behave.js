@@ -177,9 +177,12 @@ angular.module( 'angularNumberBehave', [
           mod,
           min,
           max,
-          val;
+          val,
+          flagMouseDown,
+          intervalAction,
+          timeoutAction;
 
-      element.bind('click', function(event) {
+      var action = function(event) {
         rules = scope.$eval(attrs.increaseNumber);
         val = scope.$eval(attrs.ngModel);
 
@@ -201,6 +204,22 @@ angular.module( 'angularNumberBehave', [
             }
           }
         }
+      };
+
+      element.bind('click', action);
+
+      element.bind('mousedown', function(){
+        flagMouseDown = true;
+        timeoutAction = setTimeout(function(){
+          intervalAction = setInterval(action, 50);
+        },150);
+        
+      });
+
+      element.bind('mouseup', function(){
+        flagMouseDown = false;
+        clearInterval(intervalAction);
+        clearTimeout(timeoutAction);
       });
     }
   }
