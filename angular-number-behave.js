@@ -80,7 +80,7 @@ angular.module( 'angularNumberBehave', [
 
       ngModelCtrl.$parsers.push(function(val) {
         //console.log('format Model',val);
-        var clean = val;
+        var clean = val+'';
         var floatVal = 0;
         var floatValOriginal;
         if (allowDecimal){
@@ -100,7 +100,7 @@ angular.module( 'angularNumberBehave', [
 
           }
         }else{
-          clean = val.replace( /[^0-9]+/g, '');
+          clean = clean.replace( /[^0-9]+/g, '');
         }
 
         if (val !== clean) {
@@ -167,6 +167,7 @@ angular.module( 'angularNumberBehave', [
 .directive('increaseNumber', function($parse, numberBehave) {
   return {
     require: '?ngModel',
+    priority: 1,
     //scope: {'ngModel':'='},
     link: function(scope, element, attrs, ngModelCtrl) {
       if(!ngModelCtrl) {
@@ -213,14 +214,15 @@ angular.module( 'angularNumberBehave', [
         timeoutAction = setTimeout(function(){
           intervalAction = setInterval(action, 50);
         },150);
-        
       });
 
-      element.bind('mouseup', function(){
+      var cancelAction = function(){
         flagMouseDown = false;
         clearInterval(intervalAction);
         clearTimeout(timeoutAction);
-      });
+      };
+
+      element.bind('mouseup mouseout', cancelAction);
     }
   }
 })
