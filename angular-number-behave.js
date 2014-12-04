@@ -186,7 +186,13 @@ angular.module( 'angularNumberBehave', [
       var action = function(event) {
         rules = scope.$eval(attrs.increaseNumber);
         val = scope.$eval(attrs.ngModel);
-
+        //if val is not number, convert it
+        if (typeof val === 'string'){
+          val = parseFloat(val, 10);
+          if (isNaN(val)){
+            return false; //can not continue
+          }
+        }
 
         //console.log('rules',rules,scope.ngModel);
         for (x in rules){
