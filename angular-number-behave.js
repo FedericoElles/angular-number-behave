@@ -57,7 +57,7 @@ angular.module( 'angularNumberBehave', [
       var min;
       var max;
 
-      ngModelCtrl.$setValidity('numberBehave', false);
+      ngModelCtrl.$setValidity('numberBehave', true);
 
 
       //console.log('allowDecimal',allowDecimal,attrs);
@@ -123,7 +123,7 @@ angular.module( 'angularNumberBehave', [
         max = scope.$eval(attrs.max);
         floatVal = numberBehave.maxBetween(floatVal,min,max);
         //console.log('numberBehave', floatValOriginal, floatVal,'minmax',min,max);
-        ngModelCtrl.$setValidity('numberBehave', floatValOriginal !== floatVal);
+        ngModelCtrl.$setValidity('numberBehave', floatValOriginal === floatVal);
 
         //console.log('Number',ngModelCtrl.$viewValue,floatVal);
         return floatVal;
